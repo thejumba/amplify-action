@@ -37,6 +37,7 @@ runs:
         aws-region: us-east-1
         role-to-assume: ${{ inputs.role_arn }}
         role-session-name: GithubActionDeployment
+        output-credentials: true
 
     - name: Install Amplify CLI
       shell: bash
