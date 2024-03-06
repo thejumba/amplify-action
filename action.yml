@@ -1,0 +1,87 @@
+name: Amplify action
+description: |
+  Push or pull an amplify backend environment
+inputs:
+  action:
+    description: "The action to perform"
+    required: true
+  aws_region:
+    description: "The AWS region"
+    required: true
+  amplify_env:
+    description: "The amplify environment"
+    required: true
+  amplify_app_id:
+    description: "The amplify app id"
+    required: true
+  role_arn:
+    description: "The role to assume"
+    required: true
+  cli_version:
+    description: "The version of the amplify cli"
+    required: false
+    default: "latest"
+  deploy_command:
+    description: "The command to deploy the backend"
+    required: false
+    default: "amplify push --yes --force --allow-destructive-graphql-schema-updates --minify"
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v3
+
+    - id: amplify
+      name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-region: us-east-1
+        role-to-assume: ${{ inputs.role_arn }}
+        role-session-name: GithubActionDeployment
+
+    - name: Install Amplify CLI
+      shell: bash
+      run: |
+        npm i -g @aws-amplify/cli@${{ inputs.cli_version }}
+
+    # Amplify CLI does not support headless pull with temporary credentials
+    # when useProfile is false.
+    # See: https://github.com/aws-amplify/amplify-cli/issues/11009.
+    - name: Create temp AWS profile
+      shell: bash
+      run: |
+        aws configure set aws_access_key_id ${{ steps.amplify.outputs.aws-access-key-id }} && \
+        aws configure set aws_secret_access_key ${{ steps.amplify.outputs.aws-secret-access-key }} && \
+        aws configure set aws_session_token ${{ steps.amplify.outputs.aws-session-token }} && \
+        aws configure set default.region ${{ inputs.aws_region }}
+
+    - if: ${{ inputs.action }} == 'pull'
+      name: Pull Amplify environment
+      shell: bash
+      run: |
+        AWSCLOUDFORMATIONCONFIG="{\
+        \"configLevel\":\"project\",\
+        \"useProfile\":false,\
+        \"region\":\"$AWS_REGION\"\
+        }"
+
+        AMPLIFY="{\
+        \"appId\":\"$APP_ID\",\
+        \"envName\":\"$APP_ENV\",\
+        \"defaultEditor\":\"code\"\
+        }"
+
+        PROVIDERS="{\
+        \"awscloudformation\":$AWSCLOUDFORMATIONCONFIG}"
+
+        amplify pull \
+          --amplify $AMPLIFY \
+          --providers $PROVIDERS \
+          --yes
+      env:
+        AWS_REGION: ${{ inputs.aws_region }}
+        APP_ID: ${{ inputs.amplify_app_id }}
+        APP_ENV: ${{ inputs.amplify_env }}
+
+    - name: Delete temp AWS Profile
+      shell: bash
+      run: rm -rf ~/.aws
