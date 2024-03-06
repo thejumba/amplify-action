@@ -61,7 +61,7 @@ runs:
       run: |
         AWSCLOUDFORMATIONCONFIG="{\
         \"configLevel\":\"project\",\
-        \"useProfile\":false,\
+        \"useProfile\":true,\
         \"region\":\"$AWS_REGION\"\
         }"
 
