@@ -94,7 +94,7 @@ runs:
       name: Push Amplify environment
       shell: bash
       run: |
-        {{ inputs.deploy_command }}
+        ${{ inputs.deploy_command }}
 
     - name: Delete temp AWS Profile
       shell: bash
