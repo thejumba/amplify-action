@@ -53,8 +53,7 @@ runs:
         aws configure set aws_session_token ${{ steps.amplify.outputs.aws-session-token }} && \
         aws configure set default.region ${{ inputs.aws_region }}
 
-    - if: ${{ inputs.action }} == 'pull'
-      name: Pull Amplify environment
+    - name: Pull Amplify environment
       shell: bash
       run: |
         AWSCLOUDFORMATIONCONFIG="{\
@@ -81,6 +80,12 @@ runs:
         AWS_REGION: ${{ inputs.aws_region }}
         APP_ID: ${{ inputs.amplify_app_id }}
         APP_ENV: ${{ inputs.amplify_env }}
+
+    - if: ${{ inputs.action }} == 'push'
+      name: Push Amplify environment
+      shell: bash
+      run: |
+        {{ inputs.deploy_command }}
 
     - name: Delete temp AWS Profile
       shell: bash
