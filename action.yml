@@ -72,14 +72,23 @@ runs:
         PROVIDERS="{\
         \"awscloudformation\":$AWSCLOUDFORMATIONCONFIG}"
 
-        amplify pull \
+        if [[ $AMPLIFY_ACTION == 'pull' ]]; then
+          amplify pull \
           --amplify $AMPLIFY \
           --providers $PROVIDERS \
           --yes
+        elif [[ $AMPLIFY_ACTION == 'push' ]]; then
+          amplify init \
+          --amplify $AMPLIFY \
+          --providers $PROVIDERS \
+          --yes
+        fi
+
       env:
         AWS_REGION: ${{ inputs.aws_region }}
         APP_ID: ${{ inputs.amplify_app_id }}
         APP_ENV: ${{ inputs.amplify_env }}
+        AMPLIFY_ACTION: ${{ inputs.action }}
 
     - if: ${{ inputs.action }} == 'push'
       name: Push Amplify environment
