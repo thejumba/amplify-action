@@ -8,6 +8,7 @@ inputs:
   aws_region:
     description: "The AWS region"
     required: true
+    default: "us-east-1"
   amplify_env:
     description: "The amplify environment"
     required: true
@@ -17,6 +18,10 @@ inputs:
   role_arn:
     description: "The role to assume"
     required: true
+  skip_cli_install:
+    description: "Skip the installation of the amplify cli"
+    required: false
+    default: "false"
   cli_version:
     description: "The version of the amplify cli"
     required: false
@@ -37,7 +42,8 @@ runs:
         role-session-name: GithubActionDeployment
         output-credentials: true
 
-    - name: Install Amplify CLI
+    - if: ${{ !inputs.skip_cli_install }}
+      name: Install Amplify CLI
       shell: bash
       run: |
         npm i -g @aws-amplify/cli@${{ inputs.cli_version }}
