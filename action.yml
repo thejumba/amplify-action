@@ -42,8 +42,7 @@ runs:
         role-session-name: GithubActionDeployment
         output-credentials: true
 
-    - if: ${{ !inputs.skip_cli_install }}
-      name: Install Amplify CLI
+    - name: Install Amplify CLI
       shell: bash
       run: |
         npm i -g @aws-amplify/cli@${{ inputs.cli_version }}
